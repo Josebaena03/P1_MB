@@ -35,7 +35,6 @@ public class ParserDocumentosBufferedReader {
                     idActual = Integer.parseInt(line.split(" ")[1]);
                 } else if (!line.startsWith(".W")) {
                     // Acumular contenido (ignorar encabezado .W)
-                    //contenidoActual.append(line);//.append("\n");
                     contenidoActual.append(line.strip()).append(" ");
 
                 }
