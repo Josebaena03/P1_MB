@@ -28,7 +28,8 @@ public class ParserDocumentosBufferedReader {
                 if (line.startsWith(".I")) {
                     // Guardar documento actual si existe
                     if (idActual != -1) {
-                        documentos.add(new Documento(idActual, contenidoActual.toString().strip()));
+                        String contenidoLimitado = extraerPrimerasPalabras(contenidoActual.toString(), 5);
+                        documentos.add(new Documento(idActual, contenidoLimitado));
                         contenidoActual.setLength(0); // Resetear contenido
                     }
                     // Extraer ID del nuevo documento
@@ -41,12 +42,25 @@ public class ParserDocumentosBufferedReader {
             }
             // Agregar el último documento
             if (idActual != -1) {
-                documentos.add(new Documento(idActual, contenidoActual.toString().strip()));
+                String contenidoLimitado = extraerPrimerasPalabras(contenidoActual.toString(), 5);
+                documentos.add(new Documento(idActual, contenidoLimitado));
             }
         } catch (IOException e) {
             System.out.println("Error al leer el archivo: " + e.getMessage());
             e.printStackTrace();
         }
         return documentos;
+    }
+
+    private static String extraerPrimerasPalabras(String texto, int n) {
+        String[] palabras = texto.split("\\s+");
+        
+        StringBuilder resultado = new StringBuilder();
+        
+        for (int i = 0; i < Math.min(n, palabras.length); i++) {
+            resultado.append(palabras[i]).append(" ");
+        }
+
+        return resultado.toString().strip();
     }
 }
