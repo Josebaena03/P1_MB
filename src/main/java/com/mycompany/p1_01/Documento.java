@@ -4,11 +4,7 @@
  */
 package com.mycompany.p1_01;
 
-/**
- *
- * @author josec
- */
-class Documento {
+public class Documento {
 
     private int id;
     private String contenido;

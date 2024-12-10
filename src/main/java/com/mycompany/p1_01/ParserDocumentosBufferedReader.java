@@ -5,19 +5,16 @@
 package com.mycompany.p1_01;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author josec
- */
 public class ParserDocumentosBufferedReader {
 
-    public static List<Documento> parsearDocumentos(String filePath) {
+    private final StopwordHandler stopwordHandler = new StopwordHandler();
+
+    public List<Documento> parsearDocumentos(String filePath) {
         List<Documento> documentos = new ArrayList<>();
         StringBuilder contenidoActual = new StringBuilder();
         int idActual = -1;
@@ -26,41 +23,73 @@ public class ParserDocumentosBufferedReader {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.startsWith(".I")) {
-                    // Guardar documento actual si existe
                     if (idActual != -1) {
-                        String contenidoLimitado = extraerPrimerasPalabras(contenidoActual.toString(), 5);
-                        documentos.add(new Documento(idActual, contenidoLimitado));
-                        contenidoActual.setLength(0); // Resetear contenido
+                        documentos.add(new Documento(idActual, contenidoActual.toString().strip()));
+                        contenidoActual.setLength(0);
                     }
-                    // Extraer ID del nuevo documento
                     idActual = Integer.parseInt(line.split(" ")[1]);
                 } else if (!line.startsWith(".W")) {
-                    // Acumular contenido (ignorar encabezado .W)
                     contenidoActual.append(line.strip()).append(" ");
-
                 }
             }
-            // Agregar el último documento
             if (idActual != -1) {
-                String contenidoLimitado = extraerPrimerasPalabras(contenidoActual.toString(), 5);
-                documentos.add(new Documento(idActual, contenidoLimitado));
+                documentos.add(new Documento(idActual, contenidoActual.toString().strip()));
             }
         } catch (IOException e) {
-            System.out.println("Error al leer el archivo: " + e.getMessage());
+            System.err.println("Error al leer el archivo: " + e.getMessage());
             e.printStackTrace();
         }
         return documentos;
     }
 
-    private static String extraerPrimerasPalabras(String texto, int n) {
-        String[] palabras = texto.split("\\s+");
-        
-        StringBuilder resultado = new StringBuilder();
-        
-        for (int i = 0; i < Math.min(n, palabras.length); i++) {
-            resultado.append(palabras[i]).append(" ");
-        }
+    public List<String> leerConsultas(String filePath, int maxPalabras) {
+        List<String> consultas = new ArrayList<>();
+        StringBuilder consultaActual = new StringBuilder();
+        boolean leyendoConsulta = false;
 
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                if (linea.startsWith(".I")) {
+                    if (leyendoConsulta) {
+                        String consultaProcesada = extraerPrimerasPalabras(consultaActual.toString(), maxPalabras);
+                        consultas.add(escaparConsulta(consultaProcesada));
+                        consultaActual.setLength(0);
+                    }
+                    leyendoConsulta = true;
+                } else if (!linea.startsWith(".W")) {
+                    consultaActual.append(linea.strip()).append(" ");
+                }
+            }
+            if (leyendoConsulta) {
+                String consultaProcesada = extraerPrimerasPalabras(consultaActual.toString(), maxPalabras);
+                consultas.add(escaparConsulta(consultaProcesada));
+            }
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo de consultas: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return consultas;
+    }
+
+    private String extraerPrimerasPalabras(String texto, int n) {
+        String[] palabras = texto.split("\\s+");
+        StringBuilder resultado = new StringBuilder();
+        int contador = 0;
+
+        for (String palabra : palabras) {
+            if (!stopwordHandler.esStopword(palabra)) {
+                resultado.append(palabra).append(" ");
+                contador++;
+                if (contador == n) {
+                    break;
+                }
+            }
+        }
         return resultado.toString().strip();
+    }
+
+    private String escaparConsulta(String consulta) {
+        return consulta.replaceAll("([+\\-!(){}\\[\\]^\"~*?:\\\\/])", "\\\\$1");
     }
 }

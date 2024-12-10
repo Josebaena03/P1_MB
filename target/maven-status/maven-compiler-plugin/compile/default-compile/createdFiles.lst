@@ -1,3 +1,5 @@
-com\mycompany\p1_01\Documento.class
 com\mycompany\p1_01\P1_01.class
+com\mycompany\p1_01\StopwordHandler.class
+com\mycompany\p1_01\SolrHandler.class
+com\mycompany\p1_01\Documento.class
 com\mycompany\p1_01\ParserDocumentosBufferedReader.class
