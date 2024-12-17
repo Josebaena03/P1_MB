@@ -40,6 +40,8 @@ public class SolrHandler {
         SolrQuery query = new SolrQuery();
         query.setQuery("contenido:" + consulta);
         query.setRows(maxResultados);
+        query.setRequestHandler("/select"); 
+        query.setFields("id", "contenido", "score");
 
         QueryResponse response = solrClient.query(collectionName, query);
         SolrDocumentList resultados = response.getResults();
@@ -47,7 +49,8 @@ public class SolrHandler {
         for (SolrDocument doc : resultados) {
             int id = Integer.parseInt((String) doc.getFieldValue("id"));
             String contenido = (String) doc.getFieldValue("contenido");
-            documentos.add(new Documento(id, contenido));
+            double score = Double.parseDouble(doc.getFieldValue("score").toString()); 
+            documentos.add(new Documento(id, contenido, score));
         }
 
         return documentos;
